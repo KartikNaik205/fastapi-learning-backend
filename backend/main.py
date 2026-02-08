@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from app.routes.health import router as health_router
-from app.schemas.health import HealthResponse
 
 app = FastAPI()
 
