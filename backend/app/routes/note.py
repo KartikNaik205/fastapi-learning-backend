@@ -6,6 +6,8 @@ from app.database import get_db
 from app.models import Note, User
 from app.schemas.note import NoteCreate, NoteResponse, NoteUpdate
 
+from app.services.ai_services import summarize_text
+
 router = APIRouter(prefix="/notes", tags=["Notes"])
 
 @router.post("/", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
@@ -71,3 +73,17 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return
+
+@router.post("/{note_id}/summarize")
+def summarize_note(note_id: int, db: Session = Depends(get_db)):
+    note = db.query(Note).filter(Note.id == note_id).first()
+
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    summary = summarize_text(note.content)
+
+    return {
+        "note_id": note.id,
+        "summary": summary
+    }
