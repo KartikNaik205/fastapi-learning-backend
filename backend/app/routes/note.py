@@ -81,9 +81,33 @@ def summarize_note(note_id: int, db: Session = Depends(get_db)):
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
     
-    summary = summarize_text(note.content)
+    # CACHE HIT
+    if note.summary:
+        return {
+            "note_id": note.id,
+            "summary": note.summary,
+            "cached": True
+        }
+    
+    try:
+        summary = summarize_text(note.content)
 
-    return {
-        "note_id": note.id,
-        "summary": summary
-    }
+        note.summary = summary
+        db.commit()
+        db.refresh(note)
+
+        return{
+            "note_id": note.id,
+            "summary": summary,
+            "cached": False
+        }
+    
+    except HTTPException:
+
+        raise
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Unexpected error while summarizing note"
+        )
