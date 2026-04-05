@@ -55,6 +55,7 @@ def update_note(note_id: int, note_update: NoteUpdate, db: Session = Depends(get
     
     if note_update.content is not None:
         note.content = note_update.content
+        note.summary = None 
 
     db.commit()
     db.refresh(note)
